@@ -1,3 +1,4 @@
+import React from 'react';
 import ToggleColorModeBtn from './components/ToggleColorModeBtn';
 import Views from './components/Views';
 

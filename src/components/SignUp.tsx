@@ -1,4 +1,5 @@
-import { ArrowBackIcon, ArrowLeftIcon } from "@chakra-ui/icons";
+import React from 'react';
+import { ArrowLeftIcon } from "@chakra-ui/icons";
 import {
   VStack,
   Button,
