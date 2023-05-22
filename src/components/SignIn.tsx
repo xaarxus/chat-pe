@@ -13,6 +13,9 @@ import {
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from 'yup';
+import api from '../utils/api';
+
+const SERVER_URL = 'http://localhost:4000';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -32,8 +35,25 @@ const SignIn = () => {
         .max(20, 'Password to long'),
     }),
     onSubmit: (values, actions) => {
-        alert(JSON.stringify(values, null, 2));
-        actions.resetForm();
+      const vals = { ...values };
+      fetch(api.signIn(SERVER_URL) as string, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vals),
+      }).catch(err => {
+        return;
+      }).then(res => {
+        if (!res || res.ok || res.status !== 200) return;
+        return res.json();
+      }).then(data => {
+        if (!data) return;
+        console.log(data);
+      });
+
+      actions.resetForm();
     }
   });
 
