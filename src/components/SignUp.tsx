@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowLeftIcon } from "@chakra-ui/icons";
+import React, { useContext, useState } from 'react';
+import { ArrowLeftIcon } from '@chakra-ui/icons';
 import {
   VStack,
   Button,
@@ -9,16 +9,20 @@ import {
   FormErrorMessage,
   Input,
   Heading,
-} from "@chakra-ui/react";
-import { useFormik } from "formik";
-import { useNavigate } from "react-router-dom";
+  Text,
+} from '@chakra-ui/react';
+import { useFormik } from 'formik';
+import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import api from '../utils/api';
+import { AccountContext, AccountContextType } from './AccountContext';
 
 const SERVER_URL = 'http://localhost:4000';
 
 const SignUp = () => {
+  const { setUser } = useContext(AccountContext) as AccountContextType;
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const formik = useFormik<{ username: string; password: string }>({
     initialValues: { username: '', password: '' },
@@ -35,25 +39,24 @@ const SignUp = () => {
         .max(20, 'Password to long'),
     }),
     onSubmit: (values, actions) => {
-        const vals = { ...values };
-        fetch(api.signUp(SERVER_URL) as string, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(vals),
-        }).catch(err => {
-          return;
-        }).then(res => {
-          if (!res || res.ok || res.status !== 200) return;
-          return res.json();
-        }).then(data => {
-          if (!data) return;
-          console.log(data);
-        });
+      const vals = { ...values };
+      fetch(api.signUp(SERVER_URL) as string, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vals),
+      }).then(res => {
+        if (!res || !res.ok || res.status >= 400) return;
+        return res.json();
+      }).then(data => {
+        if (data.status) setError(data.status);
+        else if (data.signIn ) navigate('/home');
+        setUser({ ...data });
+      });
 
-        actions.resetForm();
+      actions.resetForm();
     }
   });
 
@@ -72,6 +75,10 @@ const SignUp = () => {
       onSubmit={formik.handleSubmit as React.FormEventHandler<HTMLElement>}
     >
       <Heading>Sign Up</Heading>
+
+      <Text as='p' color='red.500'>
+        {error}
+      </Text>
 
       <FormControl isInvalid={!!formik.errors.username && formik.touched.username}>
         <FormLabel fontSize='lg'>Username</FormLabel>
