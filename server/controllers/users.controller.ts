@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import validateForm from '../validations/users.validation';
+import uid from 'uuid-random';
 import pool from '../db/db';
 
 
@@ -17,19 +17,18 @@ const getUser = async (req: any, res: any) => {
 
 const signIn = async (req: any, res: any) => {
   try {
-    validateForm(req, res);
-
     const existingUser = await pool.query(
-      'SELECT id, username, passhash FROM users u WHERE u.username=$1',
+      'SELECT id, username, passhash, userId FROM users u WHERE u.username=$1',
       [req.body.username],
     );
-    
+
     if (existingUser.rowCount) {
-      const isSamePass =await bcrypt.compare(req.body.password, existingUser.rows[0].passhash);
+      const isSamePass = await bcrypt.compare(req.body.password, existingUser.rows[0].passhash);
       if (isSamePass) {
         req.session.user = {
           username: req.body.username,
           id: existingUser.rows[0].id,
+          userid: existingUser.rows[0].userid,
         };
         res.json({ signIn: true, username: req.body.username })
       }
@@ -43,8 +42,6 @@ const signIn = async (req: any, res: any) => {
 
 const signUp = async (req: any, res: any) => {
   try {
-    validateForm(req, res);
-
     const existingUser = await pool.query(
       'SELECT username FROM users WHERE username=$1',
       [req.body.username],
@@ -53,12 +50,14 @@ const signUp = async (req: any, res: any) => {
     if (!existingUser.rowCount) {
       const hashPass = await bcrypt.hash(req.body.password, 10);
       const newUser = await pool.query(
-        'INSERT INTO users(username, passhash) values($1,$2) RETURNING username',
-        [req.body.username, hashPass] as [string, string],
+        'INSERT INTO users(username, passhash, userId) values($1,$2,$3) RETURNING id, username, userId',
+        [req.body.username, hashPass, uid()] as [string, string, string],
       );
+
       req.session.user = {
         username: req.body.username,
         id: newUser.rows[0].id,
+        userid: newUser.rows[0].userid,
       };
         res.json({ signIn: true, username: req.body.username })
     } else {

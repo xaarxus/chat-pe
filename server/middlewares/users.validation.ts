@@ -13,11 +13,16 @@ const formSchema = Yup.object({
     .max(20, 'Password to long'),
 });
 
-const formValidation = (req: any, res: any) => {
-  formSchema.validate(req.body)
+const formValidation = (req: any, res: any, next: any) => {
+  const formData = req.body;
+  formSchema
+    .validate(formData)
     .catch((err: any) => {
       res.status(400).send();
-      throw err;
+    })
+    .then((isValid: boolean) => {
+      if (isValid) next();
+      else res.status(400).send();
     });
 }
 

@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
+
 export type AccountContextType = {
   user: { username: string; signIn: boolean | null };
   setUser: (user: { username: string; signIn: boolean | null }) => void;
