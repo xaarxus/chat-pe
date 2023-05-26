@@ -1,12 +1,16 @@
 import * as http from 'http';
 import dotenv from 'dotenv';
 import express from 'express';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routers/users.routes';
 import { sessionMiddleware, wrapSession } from './middlewares/session.config';
-import authorizeUser from './middlewares/authorizeUser';
+import {
+  authorizeUser,
+  initializeUser,
+  addFriend,
+} from './middlewares/authorizeUser';
 
 dotenv.config();
 const app = express();
@@ -34,7 +38,12 @@ app.use('/auth', userRouter);
 io.use(wrapSession(sessionMiddleware));
 io.use(authorizeUser);
 io.on('connect', (socket: any) => {
-  console.log(socket.request?.session?.user)
+  initializeUser(socket);
+
+  socket.on('add_friend', ((friendName: string, cb: any) => {
+    console.log(friendName)
+    addFriend(socket, friendName, cb);
+  }))
 });
 io.listen(4001);
 

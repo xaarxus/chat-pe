@@ -3,11 +3,16 @@ import { AccountContext, AccountContextType } from '../components/AccountContext
 import socket from '../socket';
 
 
-const useSocketSetup = () => {
+const useSocketSetup = (setFriends: (friend: any) => void) => {
   const { setUser } = useContext(AccountContext) as AccountContextType;
 
   useEffect(() => {
     socket.connect();
+
+    socket.on('friends', (friendList) => {
+      setFriends(friendList);
+    });
+
     socket.on('connect_error', () => {
       setUser({ username: '', signIn: false });
     });
