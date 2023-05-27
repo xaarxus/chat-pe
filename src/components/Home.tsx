@@ -17,7 +17,7 @@ export const FriendContext = createContext<FriendContextType>({
 
 const Home = () => {
   const [friends, setFriends] = useState([]);
-  useSocketSetup(setFriends);
+  useSocketSetup(friends, setFriends);
 
   return (
     <FriendContext.Provider value={{ friends, setFriends }}>

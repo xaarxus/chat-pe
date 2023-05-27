@@ -10,6 +10,7 @@ import {
   authorizeUser,
   initializeUser,
   addFriend,
+  disconectUser,
 } from './middlewares/authorizeUser';
 
 dotenv.config();
@@ -41,12 +42,13 @@ io.on('connect', (socket: any) => {
   initializeUser(socket);
 
   socket.on('add_friend', ((friendName: string, cb: any) => {
-    console.log(friendName)
     addFriend(socket, friendName, cb);
   }))
-});
-io.listen(4001);
 
+  socket.on('disconnecting', () => disconectUser(socket))
+});
+
+io.listen(4001);
 server.listen(4000, () => {
   console.log('Server started!');
 })

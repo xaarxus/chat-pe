@@ -34,7 +34,6 @@ const UserContext = ({ children }: { children: React.ReactNode }) => {
         return res.json();
       })
       .then(data => {
-        console.log(data);
         if (data) {
           setUser({ ...data });
           navigate('/home');

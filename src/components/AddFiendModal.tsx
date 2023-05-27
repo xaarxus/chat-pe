@@ -17,21 +17,27 @@ import socket from '../socket';
 import { FriendContext, FriendContextType } from './Home';
 
 
+type Friend = {
+  username: string,
+  userid: string,
+  connected: boolean,
+};
+
 const AddFriendModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const { setFriends, friends } = useContext(FriendContext) as FriendContextType; 
   const [username, setUsername] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const findUser = () => {
-    socket.emit('add_friend', username, ({ errorMsg, done, newFriend }: { errorMsg: string, done: boolean, newFriend: string }) => {
-      if (done && newFriend) {
+    setTimeout(() => socket.emit('add_friend', username, ({ errorMsg, done, newFriend }: { errorMsg: string, done: boolean, newFriend: Friend }) => {
+      if (done) {
         setFriends([newFriend, ...friends])
         onClose();
         setErrorMsg('');
         return;
       }
       setErrorMsg(errorMsg);
-    });
+    }), 100);
   }
 
   return (
@@ -43,23 +49,21 @@ const AddFriendModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
         
         <ModalBody>
           <Heading as='p' color='red.500' textAlign='center' fontSize='lg'>{errorMsg}</Heading>
-          <form>
-            <FormControl>
-              <FormLabel fontSize='lg'>User's name</FormLabel>
-              <Input
-                placeholder="Enter user's name"
-                autoComplete='off'
-                size='lg'
-                name='username'
-                onChange={(e) => setUsername(e.target.value)}
-                value={username}
-              />
-            </FormControl>
-          </form>
+          <FormControl>
+            <FormLabel fontSize='lg'>User's name</FormLabel>
+            <Input
+              placeholder="Enter user's name"
+              autoComplete='off'
+              size='lg'
+              name='username'
+              onChange={(e) => setUsername(e.target.value)}
+              value={username}
+            />
+          </FormControl>
         </ModalBody>
 
         <ModalFooter>
-          <Button colorScheme='green' onClick={findUser} type='submit'>Add</Button>
+          <Button colorScheme='green' onClick={findUser}>Add</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

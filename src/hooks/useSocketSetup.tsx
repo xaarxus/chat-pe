@@ -3,7 +3,7 @@ import { AccountContext, AccountContextType } from '../components/AccountContext
 import socket from '../socket';
 
 
-const useSocketSetup = (setFriends: (friend: any) => void) => {
+const useSocketSetup = (friends: any[], setFriends: (friend: any) => void) => {
   const { setUser } = useContext(AccountContext) as AccountContextType;
 
   useEffect(() => {
@@ -13,6 +13,15 @@ const useSocketSetup = (setFriends: (friend: any) => void) => {
       setFriends(friendList);
     });
 
+    socket.on('connected', (status: boolean, username: string) => {
+      setFriends(friends.map(friend => {
+        if (username === friend.username) {
+          return { ...friend, connected: status };
+        }
+        return { ...friend };
+      }));
+    });
+
     socket.on('connect_error', () => {
       setUser({ username: '', signIn: false });
     });
@@ -20,7 +29,7 @@ const useSocketSetup = (setFriends: (friend: any) => void) => {
     return () => {
       socket.off('connect_error');
     };
-  }, [setUser]);
+  }, [setUser, setFriends, friends]);
 }
 
 export default useSocketSetup;
