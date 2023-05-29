@@ -11,6 +11,7 @@ import {
   initializeUser,
   addFriend,
   disconectUser,
+  sendMessage,
 } from './middlewares/authorizeUser';
 
 dotenv.config();
@@ -43,6 +44,10 @@ io.on('connect', (socket: any) => {
 
   socket.on('add_friend', ((friendName: string, cb: any) => {
     addFriend(socket, friendName, cb);
+  }))
+
+  socket.on('dm', ((message: any) => {
+    sendMessage(socket, message);
   }))
 
   socket.on('disconnecting', () => disconectUser(socket))

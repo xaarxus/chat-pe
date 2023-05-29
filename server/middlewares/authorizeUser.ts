@@ -49,6 +49,12 @@ const initializeUser = async (socket: any) => {
   const parsedFriendList = await parseFriendList(friendList);
   const friendRooms = parsedFriendList.map(({ userid }: { userid: string })=> userid);
 
+  const messagesQuery = await redisClient.lrange(`chat:${socket.user.userid}`, 0, -1);
+  const messages = messagesQuery.map(msg => {
+    const parsedMsg = msg.split('.');
+    return { to: parsedMsg[0], from: parsedMsg[1], content: parsedMsg[2] };
+  });
+
   setTimeout(() => {
     if (friendRooms.length > 0) {
       socket.to(friendRooms).emit('connected', true, socket.user.username);
@@ -56,6 +62,12 @@ const initializeUser = async (socket: any) => {
   }, 100);
 
   setTimeout(() => socket.emit('friends', parsedFriendList), 100);
+  setTimeout(() => {
+    console.log(messages)
+    if (messages.length > 0) {
+      socket.emit('messages', messages);
+    }
+  }, 100);
 };
 
 
@@ -101,9 +113,20 @@ const disconectUser = async (socket: any) => {
   }, 100);
 };
 
+const sendMessage = async (socket: any, message: any) => {
+  const newMessage = { ...message, from: socket.user.userid };
+  const messageString = [newMessage.to, newMessage.from, newMessage.content].join('.');
+
+  await redisClient.lpush(`chat:${newMessage.to}`, messageString);
+  await redisClient.lpush(`chat:${newMessage.from}`, messageString);
+
+  socket.to(newMessage.to).emit('dm', newMessage);
+};
+
 export {
   authorizeUser,
   initializeUser,
   addFriend,
   disconectUser,
+  sendMessage,
 };
